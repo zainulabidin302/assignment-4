@@ -1,0 +1,27 @@
+[
+  {
+    "id": 10001,
+    "name": "Potato Chips",
+    "price": 10
+  },
+  {
+    "id": 10002,
+    "name": "Cheese Burger",
+    "price": 5
+  },
+  {
+    "id": 10003,
+    "name": "Pizza Karaka",
+    "price": 10
+  },
+  {
+    "id": 10004,
+    "name": "Karela Patakha",
+    "price": 10
+  },
+  {
+    "id": 10005,
+    "name": "Samosa",
+    "price": 2
+  }
+]

@@ -1,0 +1,1 @@
+{"password":"123","email":"aai@hosst.com","name":"Ali","streetNumber":"45"}
