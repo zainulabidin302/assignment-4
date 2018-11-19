@@ -6,6 +6,8 @@ let menuItemRoutes = require('./routes/menuItemRoutes')
 let shoppingCartRoutes = require('./routes/shoppingCartRoutes')
 let orderRoutes = require('./routes/orderRoutes')
 
+let staticRoutes = require('./routes/staticRoutes')
+
 routes.routeList = {
   /**
   * @api {put} /user Update user profile
@@ -268,8 +270,10 @@ routes.routeList = {
   * @apiPermission Authenticated
   *
   */
- '/cart/order': { method: 'post', handler: orderRoutes.order , auth: true }
+ '/cart/order': { method: 'post', handler: orderRoutes.order , auth: true },
 
+ 
+ '/public': {handler: staticRoutes}
 }
 routes.methodsAllowed = {
   get: true, put: true, post: true, delete: true
@@ -282,7 +286,7 @@ routes.getRoute = function(pathName, _method) {
   let method = _method.toLowerCase()
   
   if ( (method.toLowerCase() in this.methodsAllowed)) {
-    
+    console.log('pathName', pathName)
     if (pathName in this.routeList) {
       if (this.routeList[pathName].constructor === Array) {
         let filterItems = this.routeList[pathName].filter(r => r.method === method)
@@ -295,10 +299,14 @@ routes.getRoute = function(pathName, _method) {
       }
       else if (method === this.routeList[pathName].method) {
         return this.routeList[pathName]
-      } else {
+      } 
+      
+      else  {
         console.log('METHOD MISMATCH')
         return false
       }
+    } else if (/^\/public.*/.test(pathName)) {
+      return this.routeList['/public']
     } else {
       console.log('ROUTE NOT FOUND')
       

@@ -6,12 +6,11 @@ routes.showCart = function(req, res) {
   let shoppingCart = new ShoppingCart(req.app.user)
   shoppingCart.showCart((error, data) => {
     if (error) {
-
-      res.writeHead(400) 
-      res.end(JSON.stringify({error}))
+      res.writeHead(200) 
+      res.end(JSON.stringify({cart: {cartItems: []}}))
     } else {
       res.writeHead(200)
-      res.end(JSON.stringify(data))
+      res.end(JSON.stringify({cart: data}))
     }
   })
 }

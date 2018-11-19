@@ -1,0 +1,76 @@
+<h1>Checkout page</h1>
+<h3>Your cart summary:</h3>
+<div id="result"></div>
+
+<b>Total:</b> 
+<big id="total"></big>
+<br>
+<form onsubmit="handleorder(event)">
+  <label>Credit Card Number</label>
+  <input type="text" value="4242424242424242" placeholder="Enter Credit Card Number" />
+  <br>
+  <label>CVC</label>
+  <input type="text" placeholder="Enter CVC" value="432" />
+  <br>
+  <label>Expiry Month</label>
+  <input type="text" placeholder="Enter Month" value="12" />
+  <br>
+  <label>Expiry Year</label>
+  <input type="text" placeholder="Enter Year" value="2019" />
+  <button >Pay now</button>
+</form>
+<script>
+function handleorder(event) {
+  event.preventDefault()
+  event.target.querySelector('button').disabled = true
+  event.target.querySelector('button').style.backgroundColor = 'brown'
+  let elements = event.target.querySelectorAll('input')
+  console.log(elements)
+  let data = {
+    number: elements[0].value,
+    exp_month: elements[2].value,
+    exp_year: elements[3].value,
+    cvc: elements[1].value,
+  }
+  request('cart/order', 'post', data, (err, response) => {
+    if (err) {
+      alert(err)
+    } else {
+      let json = JSON.parse(response)
+      alert("Your order has been placed sucesfully.")
+      window.location = "/public/listing"
+    }
+    event.target.querySelector('button').disabled = false
+    event.target.querySelector('button').style.backgroundColor = 'white'
+  })
+  
+}
+
+
+
+function renderProducts(cartItems) {
+  let str = "<table border=1 class=product><tr><th>Name</th><th>Quantity</th><th>Price</th></tr>"
+  let total = 0
+  cartItems.forEach(item => {
+    str += `
+      <tr>  
+      <td>${item.menuItem.name}</td><td> ${item.quantity}</td><td> ${item.menuItem.price}</td>
+      `
+      total += (item.menuItem.price * item.quantity)
+  });
+
+  document.getElementById('result').innerHTML = str + "</table>"
+  document.getElementById('total').innerHTML = total + ' $'
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  
+  request('cart/show', 'post', {}, (err, success) => {
+    if (err) {
+      console.log(err)
+    } else {
+      renderProducts(JSON.parse(success).cart.cartItems)
+    }
+  })
+})
+</script>

@@ -2,96 +2,119 @@ var routes = require('./routes')
 var StringDecoder = require('string_decoder').StringDecoder
 var Token = require('./models/Token')
 var User = require('./models/User')
-let handler = {
+
+let handler = {}
+
+
+handler.serveStatic = function(req, res) {
+  // res.setHeader('content-type', 'text/html')
+  // req.app.route.path
+
+  let contentTypeHeader = req.headers['content-type']
+  let accpetHeader = req.headers['accept']
   
+  return req.app.route.handler(req, res)
+
 }
+
+
+
+handler.serveJSON = function(req, res) {
+  res.setHeader('content-type', 'application/json')
+  req.app.route.handler(req, res)
+}
+
+handler.auth = (req, res, callback) => {
+  
+  let authorizationHeader = req.headers['authorization']
+  let authorizationHeaderIsCorrectType = typeof(authorizationHeader) === 'string'
+  let authorizationHeaderIsFormated = /Bearer [a-zA-Z0-9-]{32}/.test(authorizationHeader)
+  
+ 
+  if (authorizationHeaderIsCorrectType &&
+    authorizationHeaderIsFormated) {
+
+      Token.fromToken(authorizationHeader.replace('Bearer ', ''), (error, token) => {
+        if (error) {
+          return callback({error: "Token is missing, malformed or unuable. #002"})
+        } else {
+          let user = new User(null, token.email, null)
+          user.fetchByIdentifier((error) => {
+            if (error) {
+              return callback({error: "Token is missing, malformed or unuable. #001"})
+            }
+            let userObject = user.toJSON()
+            userObject.token = token
+            req.app.user = userObject
+            req.app.loggedIn = true
+            callback(null)
+          })
+        }
+      })
+      
+    } 
+    else {
+      return callback({error: "Token is missing or malformed."})
+    }
+}
+
+
+
 
 handler.main = function(req, res)  {
-  
+  // add custom namespace for app specific data
+  req.app = {
+    loggedIn: false
+  }
+
   let url = require('url').parse(req.url)
   let route = routes.getRoute(url.path, req.method)
-  res.setHeader('content-type', 'application/json' )
-
-  if (req.headers['content-type'] !== 'application/json' && req.headers['accept'] !== 'application/json') {
-    res.writeHead(400, "Bad Request")
-    return res.end(JSON.stringify({
-      error: "Content-type and Accept headers must be application/json"
-    }))
+  req.app.route = {
+    ...route, 
+    path: url.path
   }
-
-  /**
-   * 
-   * Custom namespace
-   */
-  req.app = {
-  }
-  
-
+  // console.log("ROUTE", route)
   if (route == false) {
-    res.writeHead(404, "Route not found")
-    return res.end(JSON.stringify({error: "Route Not found."}))
-  } 
-  
-
-
-  if (route.auth == true) {
-    
-    let authorizationHeader = req.headers['authorization']
-    let authorizationHeaderIsCorrectType = typeof(authorizationHeader) === 'string'
-    let authorizationHeaderIsFormated = /Bearer [a-zA-Z0-9-]{32}/.test(authorizationHeader)
-
-    if (authorizationHeaderIsCorrectType &&
-      authorizationHeaderIsFormated) {
-        console.log('token String', authorizationHeader.replace('Bearer ', ''))
-        Token.fromToken(authorizationHeader.replace('Bearer ', ''), (error, token) => {
-          if (error) {
-            res.writeHead(401, "Unauthorized")
-            return res.end(JSON.stringify({
-              error: "Token is missing, malformed or unuable."
-            }))
-          } else {
-            let user = new User(null, token.email, null)
-            user.fetchByIdentifier((error) => {
-              if (error) {
-                res.writeHead(401, "Unauthorized")
-                return res.end(JSON.stringify({
-                  error: "Unexpected error orccured, please try relogin." + error
-                }))
-              }
-              let userObject = user.toJSON()
-              userObject.token = token
-              req.app.user = userObject
-
-              serveRequest(req, res, route)
-            })
-          }
-        })
-        
-    } else {
-      res.writeHead(401, "Unauthorized")
-      return res.end(JSON.stringify({
-        error: "Token is missing or malformed."
-      }))
-    }
-  } else {
-    // serve routes which don't require 
-    // Authentication
-    serveRequest(req, res, route)
+    res.setHeader('content-type', 'text/html')
+    res.writeHead(404)
+    return res.end("404 not found")
   }
-
-
-
+  
+  if (route.auth == true) {
+    handler.auth(req, res, (error) => {
+      if (error) {
+        res.writeHead(401, "Unauthorized")
+        return res.end(JSON.stringify({
+          error
+        }))
+      } else {
+        // Authenticated
+        return handler._serveRequest(req, res)
+      }
+    })
+  } else {
+    // Authentication not required
+    return handler._serveRequest(req, res)
+  }
 }
 
 
-function serveRequest(req, res, route) {
-  let requestBody = ''
-  let decoder = new StringDecoder('utf8')
+handler._serveRequest = function(req, res) {
+  let contentTypeHeader = req.headers['content-type']
+  let accpetHeader = req.headers['content-type']
+
+  let responseHandler
+  if (contentTypeHeader === 'application/json' && accpetHeader === 'application/json') {
+    responseHandler = handler.serveJSON
+  } else {
+    responseHandler = handler.serveStatic
+  }
+
   if (req.method.toLowerCase() !== 'get') {
+    let requestBody = ''
+    let decoder = new StringDecoder('utf8')
     req.on('data', (chunk) => {
-      if (chunk.length > 0) {
         requestBody += decoder.write(chunk)
-      }
     })
     req.on('end', () => {
       try {
@@ -100,7 +123,7 @@ function serveRequest(req, res, route) {
         } else {
           req.app.requestBody = JSON.parse(requestBody)
         }
-        route.handler(req, res)
+        responseHandler(req, res)
       } catch(error) {
           res.writeHead(400, "Bad Request")
           console.log("Request body is malformed.", error)
@@ -108,7 +131,7 @@ function serveRequest(req, res, route) {
       }
     })
   } else {
-    route.handler(req, res)
+    responseHandler(req, res)
   }
 }
 

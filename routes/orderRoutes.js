@@ -1,5 +1,6 @@
 const ShoppingCart = require('./../models/ShoppingCart')
 const Order = require('./../models/Order')
+const stripehelper = require('../stripeHelper')
 const routes = {}
 
 routes.order = function(req, res) { 
@@ -7,7 +8,7 @@ routes.order = function(req, res) {
 
   const body = req.app.requestBody
 
-  if ('token' in body) {
+  if ('number' in body && 'exp_month' in body && 'exp_year' in body && 'cvc' in body ) {
     shoppingCart.isEmpty((error, empty) => {
       if (error) {
         if (error.code === 'ENOENT') {
@@ -16,6 +17,7 @@ routes.order = function(req, res) {
             error: "Your cart is empty"
           }))
         } else {
+          console.log("ERROR", error)
           res.writeHead(400)
           res.end(JSON.stringify({
             error
@@ -29,26 +31,37 @@ routes.order = function(req, res) {
           }))
         } else {
           let order = new Order(shoppingCart)
-          order.charge(body['token'], (error, orderJSON) => {
-            if (error) {
-               res.writeHead(400)
-               res.end(JSON.stringify({
-                 error
-               }))
-            } else {
-              res.writeHead(200)
-              res.end(JSON.stringify({
-                order: orderJSON
-              }))
+          stripehelper.createToken(body['number'], body['exp_month'], body['exp_year'], body['cvc'], (err, success) => {
+            if (err) {
+              res.json(JSON.stringify("Your credit card information is invalid. please try again."))
             }
+            
+            order.charge(success.id, (error, orderJSON) => {
+              if (error) {
+                 res.writeHead(400)
+                 res.end(JSON.stringify({
+                   error
+                 }))
+              } else {
+                res.writeHead(200)
+                res.end(JSON.stringify({
+                  order: orderJSON
+                }))
+              }
+            })
+
+
+
           })
+
+          
         }
       }
     })
   } else {
     res.writeHead(400)
     res.end(JSON.stringify({
-      error: "Payment Token is missing"
+      error: "number (credit card number), exp_month, exp_year, cvc is required"
     }))
   }
 

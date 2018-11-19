@@ -1,0 +1,59 @@
+<h1>Product Listing</h1>
+<div id="cart-counter">Loading ...</div>
+<hr>
+<div id="result"></div>
+<script>
+
+function updateCart(newCart) {
+  let items = newCart.cart.cartItems.length
+  let str = `Your cart contains: ${items} - items <a href="/public/checkout" >Checkout</a>`
+
+  document.getElementById('cart-counter').innerHTML = str
+
+}
+
+function renderProducts(products) {
+  let str = ""
+  products.menu_items.forEach(item => {
+    str += `<div class="product">
+      ${item.name}
+      <input value="" />
+      <button data-id="${item.id}" class="addToCart" >Add to Cart</button>
+      </div>`
+  });
+  document.getElementById('result').innerHTML = str
+  document.querySelectorAll('.addToCart').forEach(item => {
+    item.addEventListener('click', function(event) {
+      let id = event.target.getAttribute('data-id')
+      let quantity = event.target.previousElementSibling.value
+      request('cart/item', 'post', {
+        menuItemId: parseInt(id),
+        quantity: quantity || 1
+      }, (err, success) => {
+        if (err) {
+          alert(JSON.parse(err).error)
+        } else {
+          updateCart(JSON.parse(success))
+        }
+      })
+    })
+  })
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  request('cart/show', 'post', {}, (err, success) => {
+    if (err) {
+      alert('something went wrong!')
+    } else {
+      updateCart(JSON.parse(success))
+    }
+  })
+  request('menu_item', 'get', {}, (err, success) => {
+    if (err) {
+      console.log(err)
+    } else {
+      renderProducts(JSON.parse(success))
+    }
+  })
+})
+</script>

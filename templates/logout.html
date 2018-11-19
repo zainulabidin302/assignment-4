@@ -1,0 +1,10 @@
+<h1>Logging you out !</h1>
+<script>
+request('auth/logout', 'post', {}, (err, success) => {
+  if (err) {
+    alert('can not logout')
+  } else {
+    window.location = '/public/login'
+  }
+})
+</script>

@@ -69,6 +69,57 @@ lib.charge = function(
   })
 };
 
+
+lib.createToken = function(number, exp_month,exp_year,cvc, callback) {
+  let options = {
+    protocol: 'https:',
+    hostname: 'api.stripe.com',
+    path: '/v1/tokens',
+    method: "POST",
+    headers: {
+      'Authorization': `Bearer ${config.stripeSecretKey}`
+    }
+  }
+  let req = https.request(options, (res) => {
+    let dataBuffer = ''
+    let decoder = new StringDecoder('utf8')
+    res.on('data', (data) => {
+      dataBuffer += decoder.write(data)
+    })
+    res.on('end', () => {
+      try {
+        let json = JSON.parse(dataBuffer)
+        console.log(json)
+        return callback(null, json)
+      } catch(error) {
+        return callback(error)
+      }
+
+    })
+  })
+
+  let body = {
+    "card[number]": number, "card[exp_month]": exp_month, "card[exp_year]":exp_year, "card[cvc]": cvc
+  }
+  const postData = querystring.stringify(body)
+
+  req.write(postData)
+  req.on('error', (err) => {
+    console.log(err)
+    callback(err)
+  })
+  req.end(() => {
+
+  })
+  // curl https:/// \
+  //  -u sk_test_4eC39HqLyjWDarjtT1zdp7dc: \
+  //  -d card[number]=4242424242424242 \
+  //  -d card[exp_month]=12 \
+  //  -d card[exp_year]=2019 \
+  //  -d card[cvc]=123
+}
+
+
 // let options = {
 //   source: "tok_mastercard",
 //   currency: "usd",
@@ -77,6 +128,8 @@ lib.charge = function(
 //     order_id: 1000
 //   }
 // }
+
+
 
 
 module.exports = lib
