@@ -1,10 +1,12 @@
-# Node js Master class Assignment 2
-The project is the assignment 2 of Nodejs master class.
+# Node js Master class Assignment 3
+The project is the assignment 3 of Nodejs master class.
 
 ## Running
 There are no dependencies (thus no package.json).
-`git clone https://github.com/zainulabidin302/asignment-2-node-masterclass`
-`cd asignment-2-node-masterclass`
+`git clone https://github.com/zainulabidin302/asignment-3-node-masterclass`
+
+`cd asignment-3-node-masterclass`
+
 `node index.js`
 
 API will start on port 3000.
@@ -25,12 +27,15 @@ inside project directory
 
 NOTE: I have already generated them so you directly navigate to them.
 
-## What is possible with the current project
+Available HTML ROUTES:
 
-* Creating user , login, and logout
-* Create shopping cart, add items to it and convert it to order.
-* Pay via stripe.
-* Email sent on successfull order generation.
-* All is done via vanilla node.js :).
+/public/login
+/public/signup
+/public/checkout
+/public/listing
+
+
+
+
 
 Thanks Zain <zainulabidin302@gmail.com>
