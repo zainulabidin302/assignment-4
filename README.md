@@ -29,10 +29,13 @@ NOTE: I have already generated them so you directly navigate to them.
 
 Available HTML ROUTES:
 
-/public/login
-/public/signup
-/public/checkout
-/public/listing
+* /public/login
+
+* /public/signup
+
+* /public/checkout
+
+* /public/listing
 
 
 
