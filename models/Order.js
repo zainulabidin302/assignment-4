@@ -142,7 +142,6 @@ Order.listorders = async function(recent = false) {
               return null;
             }
           }
-          console.log(" iam here ");
           return {
             ...JSON.parse(
               await fileHelper.readfile(

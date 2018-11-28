@@ -86,6 +86,7 @@ const handler = {
     }
   },
   users: async () => {
+    let users = await User.listusers();
     if (users.filter(item => item !== null).length === 0) {
       console.log("Users not found");
     } else {
@@ -146,7 +147,7 @@ let COMMANDS = [
     short_option: "u",
     args: 0,
     handler: handler.users,
-    description: "Show all users in the system."
+    description: "Show all 8s in the system."
   },
   {
     long_option: "users-recent",
