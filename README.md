@@ -1,5 +1,14 @@
-# Node js Master class Assignment 3
-The project is the assignment 3 of Nodejs master class.
+# Node js Master class Assignment 4
+The project is the assignment 4 of Nodejs master class.
+
+
+# IMPORTANT 
+Please checkout the file *admin-cli.js* which contains the cli code for the admin.
+
+use `node admin-cli.js` to run the shell.
+
+
+
 
 ## Running
 There are no dependencies (thus no package.json).
